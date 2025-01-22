@@ -1,0 +1,9 @@
+export declare class RepomixError extends Error {
+    constructor(message: string);
+}
+export declare class RepomixConfigValidationError extends RepomixError {
+    constructor(message: string);
+}
+export declare const handleError: (error: unknown) => void;
+export declare const rethrowValidationErrorIfZodError: (error: unknown, message: string) => void;
+//# sourceMappingURL=errorHandle.d.ts.map
