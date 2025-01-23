@@ -3,12 +3,10 @@ import ConstellationInfo from './components/ConstellationInfo';
 
 function App() {
   return (
-    <div>
+    <div className="bg-cosmic-background min-h-screen">
       <ConstellationInfo />
     </div>
   );
 }
 
 export default App;
-
-

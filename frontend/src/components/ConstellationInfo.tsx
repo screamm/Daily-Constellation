@@ -1,8 +1,5 @@
-
-
-
-// src/components/ConstellationInfo.tsx
 import { useEffect, useState } from 'react';
+import { ClipLoader } from 'react-spinners';
 import axios from 'axios';
 
 const ConstellationInfo = () => {
@@ -24,42 +21,85 @@ const ConstellationInfo = () => {
   }, []);
 
   if (error) {
-    return <div className="text-red-500 text-center mt-8">{error}</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-cosmic-background">
+        <div className="text-red-500 text-lg">{error}</div>
+      </div>
+    );
   }
 
   if (!astronomyPicture) {
-    return <div className="text-cosmic-secondary text-center mt-8">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-cosmic-background">
+        <div className="text-center">
+          <ClipLoader color="#1E90FF" size={50} />
+          <p className="mt-4 text-cosmic-text">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-cosmic-background">
-      <h1 className="text-4xl font-bold text-cosmic-accent mb-4">
-        Astronomy Picture of the Day
-      </h1>
-      <div className="bg-cosmic-primary p-6 rounded-lg shadow-lg text-center max-w-md w-full">
-        <h2 className="text-2xl font-semibold text-cosmic-accent mb-4">
-          {astronomyPicture.title}
-        </h2>
-        {astronomyPicture.media_type === 'image' ? (
-          <img
-            src={astronomyPicture.url}
-            alt={astronomyPicture.title}
-            className="mb-4 rounded-lg w-full"
-          />
-        ) : (
-          <iframe
-            src={astronomyPicture.url}
-            title={astronomyPicture.title}
-            className="mb-4 rounded-lg w-full h-64"
-            allowFullScreen
-          />
-        )}
-        <p className="text-cosmic-text">{astronomyPicture.explanation}</p>
-      </div>
+    <div className="min-h-screen bg-cosmic-background">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-50 w-full bg-cosmic-primary shadow-lg">
+        <div className="container mx-auto px-4 py-4">
+          <h1 className="text-xl md:text-2xl font-bold text-cosmic-text">
+            Astronomy Picture of the Day
+          </h1>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-6">
+        <article className="max-w-4xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-cosmic-accent mb-6">
+            {astronomyPicture.title}
+          </h2>
+          
+          <div className="mb-8">
+            {astronomyPicture.media_type === 'image' ? (
+              <img
+                src={astronomyPicture.url}
+                alt={astronomyPicture.title}
+                className="w-full object-cover max-h-[70vh]"
+              />
+            ) : (
+              <div className="relative pt-[56.25%]">
+                <iframe
+                  src={astronomyPicture.url}
+                  title={astronomyPicture.title}
+                  className="absolute top-0 left-0 w-full h-full"
+                  allowFullScreen
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="prose prose-invert max-w-none">
+            <p className="text-cosmic-text text-lg leading-relaxed">
+              {astronomyPicture.explanation}
+            </p>
+          </div>
+        </article>
+      </main>
+
+      {/* Sticky Footer */}
+      <footer className="sticky bottom-0 w-full bg-cosmic-primary shadow-lg mt-8">
+        <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-cosmic-text text-sm mb-2 md:mb-0">
+            Powered by NASA's APOD API
+          </p>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="px-4 py-2 bg-cosmic-accent text-cosmic-background hover:bg-opacity-90 transition-colors"
+          >
+            Back to top
+          </button>
+        </div>
+      </footer>
     </div>
   );
 };
 
 export default ConstellationInfo;
-
-
