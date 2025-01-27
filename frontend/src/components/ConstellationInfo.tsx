@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import { ClipLoader } from 'react-spinners';
 import axios from 'axios';
 
-
 const API_URL = import.meta.env.PROD 
-  ? 'https://localhost:3000/api/constellation' 
-  : 'http://localhost:3000/api/constellation';
+  ? 'https://nasa-daily-constellation.vercel.app/api/constellation'  // Production URL
+  : 'http://localhost:3000/api/constellation';                       // Development URL (notera HTTP)
 
 const ConstellationInfo = () => {
   const [astronomyPicture, setAstronomyPicture] = useState<any>(null);
@@ -16,8 +15,9 @@ const ConstellationInfo = () => {
       try {
         const response = await axios.get(API_URL);
         setAstronomyPicture(response.data);
-      } catch (err) {
-        setError('Failed to fetch astronomy picture. Please try again later.');
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.error || 'Failed to fetch astronomy picture. Please try again later.';
+        setError(errorMessage);
         console.error('Error fetching astronomy picture:', err);
       }
     };
