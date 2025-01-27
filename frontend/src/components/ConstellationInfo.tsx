@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import { ClipLoader } from 'react-spinners';
 import axios from 'axios';
 
+
+const API_URL = import.meta.env.PROD 
+  ? 'https://localhost:3000/api/constellation' 
+  : 'http://localhost:3000/api/constellation';
+
 const ConstellationInfo = () => {
   const [astronomyPicture, setAstronomyPicture] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -9,7 +14,7 @@ const ConstellationInfo = () => {
   useEffect(() => {
     const fetchAstronomyPicture = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/constellation');
+        const response = await axios.get(API_URL);
         setAstronomyPicture(response.data);
       } catch (err) {
         setError('Failed to fetch astronomy picture. Please try again later.');
@@ -19,6 +24,7 @@ const ConstellationInfo = () => {
 
     fetchAstronomyPicture();
   }, []);
+
 
   if (error) {
     return (
