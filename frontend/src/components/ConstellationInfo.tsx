@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react';
 import { ClipLoader } from 'react-spinners';
 import axios from 'axios';
 
-const API_URL = import.meta.env.PROD 
-  ? 'https://nasa-daily-constellation.vercel.app/api/constellation'  // Production URL
-  : 'http://localhost:3000/api/constellation';                       // Development URL (notera HTTP)
+// Använd relativ URL - detta fungerar oavsett hosting
+const API_URL = '/api/constellation';
 
 const ConstellationInfo = () => {
   const [astronomyPicture, setAstronomyPicture] = useState<any>(null);
