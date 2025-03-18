@@ -1,29 +1,39 @@
 {
-  "name": "backend",
+  "name": "daily-constellation-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Backend för Daily Constellation applikationen",
+  "main": "dist/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node dist/server.js",
     "build": "tsc",
-    "dev": "nodemon"
+    "start": "node dist/app.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
+    "test": "jest"
   },
-  "keywords": [],
+  "keywords": [
+    "nasa",
+    "apod",
+    "astronomy",
+    "express",
+    "nodejs"
+  ],
   "author": "",
-  "license": "ISC",
-  "description": "",
+  "license": "MIT",
   "dependencies": {
-    "axios": "^1.7.9",
+    "axios": "^1.6.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "date-fns": "^2.30.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/node": "^22.10.7",
-    "nodemon": "^3.1.9",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.10",
+    "@types/node": "^20.10.1",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.2"
   }
 }

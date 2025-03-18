@@ -2,13 +2,89 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Reset & base styles */
+:root {
+  /* Kosmos-tema (default) */
+  --color-cosmic-background: #0a0e17;
+  --color-cosmic-background-rgb: 10, 14, 23;
+  --color-cosmic-primary: #121a2b;
+  --color-cosmic-secondary: #1a2740;
+  --color-cosmic-accent: #4d76e3;
+  --color-cosmic-accent-rgb: 77, 118, 227;
+  --color-cosmic-text: #e2e8f0;
+
+  /* Animeringsinställningar */
+  --transition-speed: 0.3s;
+}
+
+/* Mörkt tema */
+[data-theme='dark'] {
+  --color-cosmic-background: #121212;
+  --color-cosmic-background-rgb: 18, 18, 18;
+  --color-cosmic-primary: #1e1e1e;
+  --color-cosmic-secondary: #2a2a2a;
+  --color-cosmic-accent: #6ba5ff;
+  --color-cosmic-accent-rgb: 107, 165, 255;
+  --color-cosmic-text: #e5e5e5;
+}
+
+/* Ljust tema */
+[data-theme='light'] {
+  --color-cosmic-background: #f5f8fa;
+  --color-cosmic-background-rgb: 245, 248, 250;
+  --color-cosmic-primary: #ffffff;
+  --color-cosmic-secondary: #e8f0fe;
+  --color-cosmic-accent: #2563eb;
+  --color-cosmic-accent-rgb: 37, 99, 235;
+  --color-cosmic-text: #334155;
+}
+
+/* Temarelaterade text- och länkstilar */
+@layer components {
+  .text-link {
+    @apply text-cosmic-accent hover:underline transition-colors cursor-pointer;
+  }
+  
+  .btn-primary {
+    @apply px-4 py-2 bg-cosmic-accent text-cosmic-primary hover:bg-cosmic-accent hover:bg-opacity-90 
+    transition-colors rounded font-medium;
+  }
+  
+  .card {
+    @apply bg-cosmic-primary rounded-lg overflow-hidden shadow-lg 
+    transition-all border border-cosmic-accent border-opacity-10 hover:border-cosmic-accent hover:border-opacity-30;
+  }
+}
+
+/* Animationer */
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
+
+/* Mjuka överångar för tema-växling */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: var(--transition-speed);
+  transition-timing-function: ease-in-out;
+}
+
+/* Övriga stilar */
 body {
   @apply bg-cosmic-background text-cosmic-text;
   margin: 0;
   padding: 0;
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
+    'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--color-cosmic-background);
+  color: var(--color-cosmic-text);
+  transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
 #root {
   min-height: 100vh;
+}
+
+/* Grundläggande stilar */
+html {
+  scroll-behavior: smooth;
 }

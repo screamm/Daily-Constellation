@@ -1,29 +1,40 @@
 // src/app.ts
 import express from 'express';
 import cors from 'cors';
-import constellationRoutes from './routes/constellationRoutes';
+import dotenv from 'dotenv';
+import path from 'path';
+import constellationRoutes from './routes/constellation.routes';
+
+// Ladda miljövariabler från .env
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 4000;
 
-const isDevelopment = process.env.NODE_ENV !== 'production';
-
-// Utvecklingsvänlig CORS-konfiguration
-if (isDevelopment) {
-  app.use(cors());
-} else {
-  // Produktionskonfiguration med specifika origins
-  const allowedOrigins = [
-    'https://nasa-daily-constellation.vercel.app',
-    'http://localhost:5173'
-  ];
-
-  app.use(cors({
-    origin: allowedOrigins,
-    credentials: true
-  }));
-}
-
+// Middleware
+app.use(cors());
 app.use(express.json());
+
+// API-routes
 app.use('/api/constellation', constellationRoutes);
 
-export default app;
+// Servera statiska filer i produktion
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '../../frontend/dist');
+  
+  app.use(express.static(distPath));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
+// 404-hantering
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint hittades inte' });
+});
+
+// Starta servern
+app.listen(PORT, () => {
+  console.log(`Server körs på port ${PORT}`);
+});

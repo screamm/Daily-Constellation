@@ -1,0 +1,75 @@
+# Beroenden
+node_modules
+/node_modules
+/.pnp
+.pnp.js
+
+# Byggproduktion
+/dist
+/build
+/out
+
+# Miljövariabler
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Loggfiler
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs
+*.log
+
+# Runtime-data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Cachefiler
+.npm
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+.cache
+.parcel-cache
+
+# Testfiler
+/coverage
+.nyc_output
+
+# Distributionsmappar
+/frontend/dist
+/frontend/build
+/backend/dist
+/backend/build
+
+# Typscript-filer
+*.tsbuildinfo
+
+# Editor-specifika filer
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS-specifika filer
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Debug
+.chrome
+*.heapsnapshot 

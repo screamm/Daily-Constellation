@@ -40,3 +40,60 @@
 .read-the-docs {
   color: #888;
 }
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-cosmic-background);
+}
+
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Animera sidövergångar */
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+/* Scrollbar-styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cosmic-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-cosmic-accent);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-cosmic-accent-rgb), 0.8);
+}
+
+/* Fokus-stilar för tillgänglighet */
+:focus {
+  outline: 2px solid var(--color-cosmic-accent);
+  outline-offset: 2px;
+}
