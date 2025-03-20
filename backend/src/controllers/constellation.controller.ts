@@ -9,16 +9,40 @@ import {
   getDemoRandomPicture 
 } from '../services/demoService';
 
-const API_KEY = process.env.NASA_API_KEY;
+// Konstanter för NASA API
 const NASA_API_URL = 'https://api.nasa.gov/planetary/apod';
-// Aktivera demodata alltid för nu, oberoende av miljövariabler
-const USE_DEMO_DATA = true;
+
+// Använd miljövariabeln för att avgöra om demodata ska användas
+const USE_DEMO_DATA = process.env.USE_DEMO_DATA === 'true';
+console.log('Controller: Demo-läge:', USE_DEMO_DATA);
+
+// Hjälpfunktion för att hämta aktuell API-nyckel
+const getApiKey = () => {
+  const apiKey = process.env.NASA_API_KEY;
+  return apiKey;
+};
 
 /**
  * Hämta dagens astronomiska bild
  */
 export const getToday = async (req: Request, res: Response) => {
+  const API_KEY = getApiKey();
   console.log("Demo-läge aktiverat:", USE_DEMO_DATA);
+  console.log("Använder API-nyckel:", API_KEY ? `${API_KEY.substring(0, 5)}...` : 'ingen nyckel');
+  
+  // Kontrollera om en API-nyckel finns tillgänglig
+  if (!API_KEY) {
+    console.error("NASA_API_KEY saknas i miljövariabler - kan inte göra API-anrop!");
+    if (USE_DEMO_DATA) {
+      console.log('Använder demodata istället på grund av saknad API-nyckel');
+      const demoData = getDemoTodayPicture();
+      return res.json(demoData);
+    } else {
+      return res.status(500).json({ 
+        error: 'NASA API-nyckel saknas i konfigurationen. Vänligen lägg till en giltig API-nyckel i .env-filen.' 
+      });
+    }
+  }
   
   // Om demo-läge är aktiverat, använd demodata direkt
   if (USE_DEMO_DATA) {
@@ -38,6 +62,7 @@ export const getToday = async (req: Request, res: Response) => {
   }
   
   try {
+    console.log(`Anropar NASA API med URL: ${NASA_API_URL}?api_key=${API_KEY?.substr(0, 3)}...`);
     const response = await axios.get(NASA_API_URL, {
       params: { api_key: API_KEY }
     });
@@ -49,11 +74,19 @@ export const getToday = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Error fetching today\'s astronomy picture:', error.message);
     
-    // Hantera specifika API-fel
+    // Mer detaljerad logginformation för felsökning
     if (error.response) {
+      console.error('NASA API svarstatus:', error.response.status);
+      console.error('NASA API svarsdata:', error.response.data);
+      
       if (error.response.status === 403) {
+        // Kontrollera om det finns ett detaljerat felmeddelande från NASA API
+        const errorMessage = error.response.data?.error?.message || 
+                            error.response.data?.msg || 
+                            'NASA API begränsning nådd eller ogiltig API-nyckel.';
+        
         return res.status(503).json({ 
-          error: 'NASA API begränsning nådd. Tjänsten är tillfälligt otillgänglig. Vänligen försök igen senare eller skaffa en egen API-nyckel på https://api.nasa.gov/.' 
+          error: `Problem med NASA API: ${errorMessage} Vänligen försök igen senare eller skaffa en egen API-nyckel på https://api.nasa.gov/.` 
         });
       }
       if (error.response.status === 429) {
@@ -74,10 +107,25 @@ export const getToday = async (req: Request, res: Response) => {
  */
 export const getByDate = async (req: Request, res: Response) => {
   const { date } = req.params;
+  const API_KEY = getApiKey();
   
   // Validera datum-format (YYYY-MM-DD)
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return res.status(400).json({ error: 'Ogiltigt datumformat. Använd YYYY-MM-DD.' });
+  }
+  
+  // Kontrollera om en API-nyckel finns tillgänglig
+  if (!API_KEY) {
+    console.error("NASA_API_KEY saknas i miljövariabler - kan inte göra API-anrop!");
+    if (USE_DEMO_DATA) {
+      console.log(`Använder demodata istället på grund av saknad API-nyckel för datum ${date}`);
+      const demoData = getDemoDatePicture(date);
+      return res.json(demoData);
+    } else {
+      return res.status(500).json({ 
+        error: 'NASA API-nyckel saknas i konfigurationen. Vänligen lägg till en giltig API-nyckel i .env-filen.' 
+      });
+    }
   }
   
   // Om demo-läge är aktiverat, använd demodata direkt
@@ -97,6 +145,7 @@ export const getByDate = async (req: Request, res: Response) => {
   }
   
   try {
+    console.log(`Anropar NASA API för datum ${date} med API-nyckel: ${API_KEY.substring(0, 5)}...`);
     const response = await axios.get(NASA_API_URL, {
       params: { 
         api_key: API_KEY,
@@ -139,6 +188,7 @@ export const getByDate = async (req: Request, res: Response) => {
  */
 export const getDateRange = async (req: Request, res: Response) => {
   const { start_date, end_date } = req.query;
+  const API_KEY = getApiKey();
   
   // Validera datum-format (YYYY-MM-DD)
   if (!start_date || !end_date || 
@@ -165,6 +215,20 @@ export const getDateRange = async (req: Request, res: Response) => {
     });
   }
   
+  // Kontrollera om en API-nyckel finns tillgänglig
+  if (!API_KEY) {
+    console.error("NASA_API_KEY saknas i miljövariabler - kan inte göra API-anrop!");
+    if (USE_DEMO_DATA) {
+      console.log(`Använder demodata istället på grund av saknad API-nyckel för intervall ${start_date} till ${end_date}`);
+      const demoData = getDemoRangePictures(start_date as string, end_date as string);
+      return res.json(demoData);
+    } else {
+      return res.status(500).json({ 
+        error: 'NASA API-nyckel saknas i konfigurationen. Vänligen lägg till en giltig API-nyckel i .env-filen.' 
+      });
+    }
+  }
+  
   // Om demo-läge är aktiverat, använd demodata direkt
   if (USE_DEMO_DATA) {
     console.log(`Använder demodata för datumintervall ${start_date} till ${end_date}`);
@@ -182,6 +246,7 @@ export const getDateRange = async (req: Request, res: Response) => {
   }
   
   try {
+    console.log(`Anropar NASA API för datumintervall med API-nyckel: ${API_KEY.substring(0, 5)}...`);
     const response = await axios.get(NASA_API_URL, {
       params: { 
         api_key: API_KEY,
@@ -224,6 +289,22 @@ export const getDateRange = async (req: Request, res: Response) => {
  * Slumpmässig astronomisk bild
  */
 export const getRandom = async (req: Request, res: Response) => {
+  const API_KEY = getApiKey();
+  
+  // Kontrollera om en API-nyckel finns tillgänglig
+  if (!API_KEY) {
+    console.error("NASA_API_KEY saknas i miljövariabler - kan inte göra API-anrop!");
+    if (USE_DEMO_DATA) {
+      console.log(`Använder demodata istället på grund av saknad API-nyckel för slumpmässig bild`);
+      const demoData = getDemoRandomPicture();
+      return res.json(demoData);
+    } else {
+      return res.status(500).json({ 
+        error: 'NASA API-nyckel saknas i konfigurationen. Vänligen lägg till en giltig API-nyckel i .env-filen.' 
+      });
+    }
+  }
+  
   // Om demo-läge är aktiverat, använd demodata direkt
   if (USE_DEMO_DATA) {
     console.log('Använder demodata för slumpmässig astronomisk bild');
@@ -241,6 +322,7 @@ export const getRandom = async (req: Request, res: Response) => {
     
     const formattedDate = format(randomDate, 'yyyy-MM-dd');
     
+    console.log(`Anropar NASA API för slumpmässigt datum ${formattedDate} med API-nyckel: ${API_KEY.substring(0, 5)}...`);
     const response = await axios.get(NASA_API_URL, {
       params: { 
         api_key: API_KEY,

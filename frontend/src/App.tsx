@@ -5,6 +5,7 @@ import ConstellationInfo from './components/ConstellationInfo';
 import HistoricalGallery from './components/HistoricalGallery';
 import Favorites from './components/Favorites';
 import NavigationBar from './components/NavigationBar';
+import Footer from './components/Footer';
 import NotFound from './components/NotFound';
 import './App.css';
 
@@ -55,6 +56,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
+        <Footer />
       </div>
     </Router>
   );
