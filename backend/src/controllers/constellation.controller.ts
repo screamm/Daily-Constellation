@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { format, subDays, parseISO } from 'date-fns';
-import { getFromCache, saveToCache } from '../services/cacheService';
+import cacheService, { getFromCache, saveToCache } from '../services/cacheService';
 import { 
   getDemoTodayPicture, 
   getDemoDatePicture, 
@@ -11,6 +11,7 @@ import {
 
 // Konstanter för NASA API
 const NASA_API_URL = 'https://api.nasa.gov/planetary/apod';
+const NASA_API_TIMEOUT = 10000; // 10 sekunder timeout
 
 // Använd miljövariabeln för att avgöra om demodata ska användas
 const USE_DEMO_DATA = process.env.USE_DEMO_DATA === 'true';
@@ -20,6 +21,67 @@ console.log('Controller: Demo-läge:', USE_DEMO_DATA);
 const getApiKey = () => {
   const apiKey = process.env.NASA_API_KEY;
   return apiKey;
+};
+
+// Hjälpfunktion för att hantera API-fel
+const handleApiError = (error: any, res: Response, context: string): Response => {
+  console.error(`Error in ${context}:`, error.message);
+
+  // Detaljerad loggning av fel
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError;
+    if (axiosError.response) {
+      console.error('NASA API response status:', axiosError.response.status);
+      console.error('NASA API response headers:', axiosError.response.headers);
+      console.error('NASA API response data:', axiosError.response.data);
+      
+      const status = axiosError.response.status;
+      const responseData = axiosError.response.data as any;
+      
+      // Hantera specifika HTTP-felkoder
+      switch (status) {
+        case 400:
+          return res.status(400).json({ 
+            error: 'Ogiltig förfrågan till NASA API. Kontrollera parametrarna och försök igen.',
+            details: responseData?.error?.message || responseData?.msg
+          });
+        case 403:
+          return res.status(503).json({ 
+            error: `Problem med NASA API-nyckeln: ${
+              responseData?.error?.message || 
+              responseData?.msg || 
+              'API-begränsning nådd eller ogiltig nyckel'
+            }. Vänligen försök igen senare eller skaffa en egen API-nyckel på https://api.nasa.gov/.`
+          });
+        case 429:
+          return res.status(503).json({ 
+            error: 'För många förfrågningar till NASA API. Vänligen försök igen om en stund.'
+          });
+        case 500:
+        case 502:
+        case 503:
+        case 504:
+          return res.status(503).json({ 
+            error: `NASA-tjänsten är för närvarande otillgänglig (${status}). Vänligen försök igen senare.`
+          });
+        default:
+          break;
+      }
+    } else if (axiosError.request) {
+      // Nätverksfel / timeout
+      console.error('Network error:', axiosError.code);
+      return res.status(503).json({ 
+        error: `Kunde inte nå NASA API: ${axiosError.code === 'ECONNABORTED' ? 
+          'Tidsgränsen för anslutningen överskreds.' : 
+          'Nätverksfel vid anslutning till tjänsten.'}`
+      });
+    }
+  }
+  
+  // Generellt fel
+  return res.status(500).json({ 
+    error: `Kunde inte hämta data från NASA API: ${error.message}` 
+  });
 };
 
 /**
@@ -58,47 +120,33 @@ export const getToday = async (req: Request, res: Response) => {
   // Försök hämta från cache först
   const cachedData = getFromCache(cacheKey);
   if (cachedData) {
+    console.log('Returnerar cachad data för dagens astronomiska bild');
     return res.json(cachedData);
   }
   
   try {
     console.log(`Anropar NASA API med URL: ${NASA_API_URL}?api_key=${API_KEY?.substr(0, 3)}...`);
     const response = await axios.get(NASA_API_URL, {
-      params: { api_key: API_KEY }
+      params: { api_key: API_KEY },
+      timeout: NASA_API_TIMEOUT
     });
     
-    // Spara i cache
-    saveToCache(cacheKey, response.data);
+    // Validera svarsdata
+    if (!response.data || typeof response.data !== 'object') {
+      return res.status(500).json({ 
+        error: 'Ogiltig svarsdata från NASA API.' 
+      });
+    }
+    
+    // Spara i cache med specifik typ
+    saveToCache(cacheKey, response.data, 'today');
+    
+    // Logga cache-statistik
+    console.log('Cache statistik:', cacheService.getStats());
     
     return res.json(response.data);
   } catch (error: any) {
-    console.error('Error fetching today\'s astronomy picture:', error.message);
-    
-    // Mer detaljerad logginformation för felsökning
-    if (error.response) {
-      console.error('NASA API svarstatus:', error.response.status);
-      console.error('NASA API svarsdata:', error.response.data);
-      
-      if (error.response.status === 403) {
-        // Kontrollera om det finns ett detaljerat felmeddelande från NASA API
-        const errorMessage = error.response.data?.error?.message || 
-                            error.response.data?.msg || 
-                            'NASA API begränsning nådd eller ogiltig API-nyckel.';
-        
-        return res.status(503).json({ 
-          error: `Problem med NASA API: ${errorMessage} Vänligen försök igen senare eller skaffa en egen API-nyckel på https://api.nasa.gov/.` 
-        });
-      }
-      if (error.response.status === 429) {
-        return res.status(503).json({ 
-          error: 'För många förfrågningar till NASA API. Vänligen försök igen om en stund.' 
-        });
-      }
-    }
-    
-    return res.status(500).json({ 
-      error: 'Kunde inte hämta dagens astronomiska bild från NASA API.' 
-    });
+    return handleApiError(error, res, 'getToday');
   }
 };
 
@@ -141,6 +189,7 @@ export const getByDate = async (req: Request, res: Response) => {
   // Försök hämta från cache först
   const cachedData = getFromCache(cacheKey);
   if (cachedData) {
+    console.log(`Returnerar cachad data för datum ${date}`);
     return res.json(cachedData);
   }
   
@@ -150,36 +199,23 @@ export const getByDate = async (req: Request, res: Response) => {
       params: { 
         api_key: API_KEY,
         date: date
-      }
+      },
+      timeout: NASA_API_TIMEOUT
     });
     
-    // Spara i cache
-    saveToCache(cacheKey, response.data);
+    // Validera svarsdata
+    if (!response.data || typeof response.data !== 'object') {
+      return res.status(500).json({ 
+        error: 'Ogiltig svarsdata från NASA API.' 
+      });
+    }
+    
+    // Spara i cache med specifik typ
+    saveToCache(cacheKey, response.data, 'date');
     
     return res.json(response.data);
   } catch (error: any) {
-    console.error(`Error fetching astronomy picture for date ${date}:`, error.message);
-    
-    // Hantera specifika API-fel
-    if (error.response) {
-      if (error.response.status === 403) {
-        return res.status(503).json({ 
-          error: 'NASA API begränsning nådd. Tjänsten är tillfälligt otillgänglig. Vänligen försök igen senare eller skaffa en egen API-nyckel på https://api.nasa.gov/.' 
-        });
-      }
-      if (error.response.status === 429) {
-        return res.status(503).json({ 
-          error: 'För många förfrågningar till NASA API. Vänligen försök igen om en stund.' 
-        });
-      }
-      if (error.response.status === 400) {
-        return res.status(400).json({ error: 'Ogiltigt datum eller utanför tillåtet intervall.' });
-      }
-    }
-    
-    return res.status(500).json({ 
-      error: 'Kunde inte hämta astronomisk bild för det angivna datumet.' 
-    });
+    return handleApiError(error, res, `getByDate(${date})`);
   }
 };
 
@@ -242,6 +278,7 @@ export const getDateRange = async (req: Request, res: Response) => {
   // Försök hämta från cache först
   const cachedData = getFromCache(cacheKey);
   if (cachedData) {
+    console.log(`Returnerar cachad data för datumintervall ${start_date} till ${end_date}`);
     return res.json(cachedData);
   }
   
@@ -252,36 +289,28 @@ export const getDateRange = async (req: Request, res: Response) => {
         api_key: API_KEY,
         start_date: start_date,
         end_date: end_date
-      }
+      },
+      timeout: NASA_API_TIMEOUT
     });
     
-    // Spara i cache
-    saveToCache(cacheKey, response.data);
-    
-    return res.json(response.data);
-  } catch (error: any) {
-    console.error('Error fetching astronomy pictures for date range:', error.message);
-    
-    // Hantera specifika API-fel
-    if (error.response) {
-      if (error.response.status === 403) {
-        return res.status(503).json({ 
-          error: 'NASA API begränsning nådd. Tjänsten är tillfälligt otillgänglig. Vänligen försök igen senare eller skaffa en egen API-nyckel på https://api.nasa.gov/.' 
-        });
-      }
-      if (error.response.status === 429) {
-        return res.status(503).json({ 
-          error: 'För många förfrågningar till NASA API. Vänligen försök igen om en stund.' 
-        });
-      }
-      if (error.response.status === 400) {
-        return res.status(400).json({ error: 'Ogiltigt datumintervall.' });
-      }
+    // Validera svarsdata
+    if (!response.data || !Array.isArray(response.data)) {
+      return res.status(500).json({ 
+        error: 'Ogiltig svarsdata från NASA API, förväntade en array.' 
+      });
     }
     
-    return res.status(500).json({ 
-      error: 'Kunde inte hämta astronomiska bilder för det angivna datumintervallet.' 
+    // Sortera data efter datum (nyaste först)
+    const sortedData = [...response.data].sort((a, b) => {
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
+    
+    // Spara i cache med specifik typ
+    saveToCache(cacheKey, sortedData, 'range');
+    
+    return res.json(sortedData);
+  } catch (error: any) {
+    return handleApiError(error, res, `getDateRange(${start_date} to ${end_date})`);
   }
 };
 
@@ -313,43 +342,95 @@ export const getRandom = async (req: Request, res: Response) => {
   }
   
   try {
-    // Generera ett slumpmässigt datum mellan första APOD (1995-06-16) och idag
-    const today = new Date();
+    // Generera ett slumpmässigt datum mellan 1995-06-16 (första APOD) och idag
     const startDate = new Date('1995-06-16');
-    const randomDate = new Date(
-      startDate.getTime() + Math.random() * (today.getTime() - startDate.getTime())
-    );
+    const today = new Date();
+    const randomTime = startDate.getTime() + Math.random() * (today.getTime() - startDate.getTime());
+    const randomDate = new Date(randomTime);
+    const formattedDate = randomDate.toISOString().split('T')[0]; // YYYY-MM-DD
     
-    const formattedDate = format(randomDate, 'yyyy-MM-dd');
+    // Skapa cache-nyckel för det slumpmässiga datumet
+    const cacheKey = `apod:random:${formattedDate}`;
+    
+    // Försök hämta från cache först
+    const cachedData = getFromCache(cacheKey);
+    if (cachedData) {
+      console.log(`Returnerar cachad data för slumpmässigt datum ${formattedDate}`);
+      return res.json(cachedData);
+    }
     
     console.log(`Anropar NASA API för slumpmässigt datum ${formattedDate} med API-nyckel: ${API_KEY.substring(0, 5)}...`);
     const response = await axios.get(NASA_API_URL, {
       params: { 
         api_key: API_KEY,
         date: formattedDate
-      }
+      },
+      timeout: NASA_API_TIMEOUT
     });
+    
+    // Validera svarsdata
+    if (!response.data || typeof response.data !== 'object') {
+      return res.status(500).json({ 
+        error: 'Ogiltig svarsdata från NASA API.' 
+      });
+    }
+    
+    // Spara i cache med specifik typ
+    saveToCache(cacheKey, response.data, 'random');
     
     return res.json(response.data);
   } catch (error: any) {
-    console.error('Error fetching random astronomy picture:', error.message);
+    return handleApiError(error, res, 'getRandom');
+  }
+};
+
+/**
+ * Rensa cache (administrationsfunktion)
+ */
+export const clearApiCache = async (req: Request, res: Response) => {
+  try {
+    const { type } = req.query;
     
-    // Hantera specifika API-fel
-    if (error.response) {
-      if (error.response.status === 403) {
-        return res.status(503).json({ 
-          error: 'NASA API begränsning nådd. Tjänsten är tillfälligt otillgänglig. Vänligen försök igen senare eller skaffa en egen API-nyckel på https://api.nasa.gov/.' 
-        });
-      }
-      if (error.response.status === 429) {
-        return res.status(503).json({ 
-          error: 'För många förfrågningar till NASA API. Vänligen försök igen om en stund.' 
-        });
-      }
+    if (type && typeof type === 'string') {
+      // Rensa specifik typ av cache
+      const prefix = `apod:${type}:`;
+      cacheService.clear(prefix);
+      return res.json({ 
+        success: true, 
+        message: `Cache rensad för typ: ${type}`,
+        stats: cacheService.getStats()
+      });
+    } else {
+      // Rensa all cache
+      cacheService.clear();
+      return res.json({ 
+        success: true, 
+        message: 'All cache rensad',
+        stats: cacheService.getStats()
+      });
     }
-    
+  } catch (error: any) {
     return res.status(500).json({ 
-      error: 'Kunde inte hämta en slumpmässig astronomisk bild.' 
+      success: false, 
+      error: `Kunde inte rensa cache: ${error.message}` 
+    });
+  }
+};
+
+/**
+ * Hämta cache-statistik (administrationsfunktion)
+ */
+export const getCacheStats = async (req: Request, res: Response) => {
+  try {
+    const stats = cacheService.getStats();
+    return res.json({ 
+      success: true,
+      stats
+    });
+  } catch (error: any) {
+    return res.status(500).json({ 
+      success: false, 
+      error: `Kunde inte hämta cache-statistik: ${error.message}` 
     });
   }
 }; 

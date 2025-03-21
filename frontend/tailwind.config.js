@@ -10,7 +10,10 @@ export default {
       colors: {
         'cosmic-background': 'var(--color-cosmic-background)',
         'cosmic-primary': 'var(--color-cosmic-primary)',
+        'cosmic-secondary': 'var(--color-cosmic-secondary)',
         'cosmic-accent': 'var(--color-cosmic-accent)',
+        'cosmic-accent-soft': 'var(--color-cosmic-accent-soft)',
+        'cosmic-border': 'var(--color-cosmic-border)',
         'cosmic-text': 'var(--color-cosmic-text)',
       },
       fontFamily: {

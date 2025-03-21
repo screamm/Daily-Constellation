@@ -52,6 +52,7 @@
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
+  transition: background-color 0.5s ease;
 }
 
 .app-content {
@@ -61,25 +62,31 @@
   height: calc(100vh - 64px - 49px); /* 100vh - navbar height - footer height */
   overflow: hidden;
   position: relative;
+  padding: 1rem;
+  transition: padding 0.3s ease;
 }
 
 /* Animera sidövergångar */
 .fade-enter {
   opacity: 0;
+  transform: translateY(10px);
 }
 
 .fade-enter-active {
   opacity: 1;
-  transition: opacity 300ms;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
 }
 
 .fade-exit {
   opacity: 1;
+  transform: translateY(0);
 }
 
 .fade-exit-active {
   opacity: 0;
-  transition: opacity 300ms;
+  transform: translateY(-10px);
+  transition: opacity 300ms, transform 300ms;
 }
 
 /* Scrollbar-styling */
@@ -90,21 +97,32 @@
 
 ::-webkit-scrollbar-track {
   background: var(--color-cosmic-primary);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-cosmic-accent);
+  background: var(--color-cosmic-accent-soft);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(var(--color-cosmic-accent-rgb), 0.8);
+  background: var(--color-cosmic-accent);
 }
 
 /* Fokus-stilar för tillgänglighet */
 :focus {
-  outline: 2px solid var(--color-cosmic-accent);
+  outline: 2px solid var(--color-cosmic-accent-soft);
   outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-cosmic-accent-soft);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(var(--color-cosmic-accent-rgb), 0.15);
 }
 
 /* Fixa storlek för sidor som innehåller bilder */
@@ -115,12 +133,24 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease-in-out;
 }
 
 /* Media query för mindre skärmar */
 @media (max-height: 768px) {
   .app-content {
     height: calc(100vh - 56px - 42px); /* Mindre höjder för navbar och footer på små skärmar */
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-content {
+    padding: 0.5rem;
+  }
+  
+  #root {
+    max-width: 100%;
   }
 }
 
@@ -130,12 +160,225 @@
   max-width: 100%;
   height: auto;
   margin: 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.constellation-container img:hover {
+  transform: scale(1.01);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
 
 .constellation-container .content {
   position: relative;
   z-index: 1;
   padding: 1rem;
+  color: var(--color-cosmic-text);
+  transition: color 0.3s ease;
+}
+
+/* Laddnings- och feltillstånd */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-cosmic-text);
+}
+
+.error-container {
+  background-color: rgba(var(--color-cosmic-accent-soft-rgb), 0.1);
+  border-left: 4px solid var(--color-cosmic-accent-soft);
+  padding: 1.5rem;
+  margin: 1rem 0;
+  border-radius: 0.25rem;
+  color: var(--color-cosmic-text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: var(--color-cosmic-accent);
   color: white;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-cosmic-accent);
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary:focus {
+  box-shadow: 0 0 0 3px rgba(var(--color-cosmic-accent-rgb), 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-cosmic-text);
+  border: 1px solid var(--color-cosmic-border);
+}
+
+.btn-secondary:hover {
+  background-color: rgba(var(--color-cosmic-secondary-rgb), 0.5);
+}
+
+.btn-secondary:focus {
+  box-shadow: 0 0 0 2px rgba(var(--color-cosmic-border-rgb), 0.4);
+}
+
+/* Card styles */
+.card {
+  background-color: var(--color-cosmic-primary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-cosmic-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  border-color: var(--color-cosmic-border);
+}
+
+/* Animerad stjärnbakgrund */
+.starry-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.3;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background-color: white;
+  border-radius: 50%;
+  opacity: 0;
+  animation: twinkle var(--twinkle-duration) ease-in-out infinite;
+  z-index: 0;
+}
+
+.star::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.4);
+  opacity: 0;
+  animation: glow var(--twinkle-duration) ease-in-out infinite;
+  animation-delay: calc(var(--twinkle-duration) / 2);
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0; }
+  50% { opacity: var(--star-opacity, 0.8); }
+}
+
+@keyframes glow {
+  0%, 100% { opacity: 0; }
+  50% { opacity: var(--glow-opacity, 0.3); }
+}
+
+/* Förbättrad tillgänglighet */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Stark fokusvisualiserare för tangentbordsnavigation */
+:focus-visible {
+  outline: 3px solid var(--color-cosmic-accent) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 3px rgba(var(--color-cosmic-accent-rgb), 0.4) !important;
+  border-radius: 0.25rem;
+  position: relative;
+  z-index: 5;
+}
+
+/* Höjd kontrast för text på mörk bakgrund */
+.text-cosmic-text {
+  color: var(--color-cosmic-text);
+  font-weight: 500;
+}
+
+/* Förbättrad interaktivitet för fokuserade element i galleriet */
+.constellation-card:focus-within {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px rgba(var(--color-cosmic-accent-rgb), 0.5);
+  outline: none;
+}
+
+/* Stilar för tangentbordsnavigation i galleriet */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.gallery-item:focus-within {
+  outline: none;
+  position: relative;
+  z-index: 5;
+}
+
+.gallery-item-link:focus {
+  outline: none;
+}
+
+.gallery-item-link:focus-visible {
+  outline: 3px solid var(--color-cosmic-accent);
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0 3px rgba(var(--color-cosmic-accent-rgb), 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .starry-background {
+    display: none;
+  }
+  
+  .star, .star::after {
+    animation: none !important;
+  }
 }
 

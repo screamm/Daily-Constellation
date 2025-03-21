@@ -1,8 +1,10 @@
-# Daily Constellation
+# Daily Constellation 🌌
 
 En modern webbapplikation som visar NASA:s Astronomy Picture of the Day (APOD) med möjlighet att bläddra historiskt, markera favoriter och dela på sociala medier.
 
-## Funktioner
+![App Preview](screenshots/png/app-preview.png)
+
+## ✨ Funktioner
 
 - **Dagens astronomiska bild**: Se dagens bild från NASA's APOD API
 - **Historiskt galleri**: Utforska bilder från specifika datum eller datumintervall
@@ -10,14 +12,17 @@ En modern webbapplikation som visar NASA:s Astronomy Picture of the Day (APOD) m
 - **Delningsfunktion**: Dela dagens bild på sociala medier eller kopiera länk
 - **Responsiv design**: En vacker upplevelse på alla enheter
 - **Tema-stöd**: Växla mellan mörkt, ljust och kosmiskt tema
+- **Tangentbordsnavigation**: Fullständigt stöd för tangentbordsnavigation i bildgalleri 
+- **Tillgänglighet**: ARIA-attribut och skärmläsarstöd
+- **Animerad stjärnbakgrund**: Subtil och elegant kosmisk känsla
 
-## Teknologier
+## 🛠️ Teknologier
 
-- **Frontend**: React, TypeScript, TailwindCSS
-- **Backend**: Node.js, Express
+- **Frontend**: React, TypeScript, TailwindCSS, Vite
+- **Backend**: Node.js, Express, TypeScript
 - **API**: NASA APOD API
 
-## Kom igång
+## 🚀 Kom igång
 
 ### Förutsättningar
 
@@ -53,7 +58,7 @@ NASA_API_KEY=DEMO_KEY
 PORT=4001
 ```
 
-## NASA API-nyckel
+## 🔑 NASA API-nyckel
 
 Applikationen använder NASA:s APOD API. Du kan använda "DEMO_KEY" men den har begränsningar:
 - Maximalt 30 anrop per IP-adress per timme
@@ -79,7 +84,7 @@ npm run dev
 
 Detta kommer att starta:
 - Backend på http://localhost:4001
-- Frontend på http://localhost:5173
+- Frontend på http://localhost:5174
 
 Du kan också starta dem separat:
 
@@ -91,54 +96,49 @@ npm run start:backend
 npm run start:frontend
 ```
 
-## Användning
+## 📱 Användning
 
 När applikationen är igång kan du:
 
 1. Bläddra mellan olika vyer via navigationsfältet
 2. Se dagens astronomiska bild på startsidan
-3. Markera bilder som favoriter genom att klicka på hjärtikonen
+3. Markera bilder som favoriter genom att klicka på stjärnikonen
 4. Dela bilder genom att klicka på delningsikonen
 5. Utforska historiska bilder genom att besöka gallerisidan och välja datumintervall
+6. Använd piltangenterna för att navigera i bildgalleriet
 
-## Licens
+## 📷 Skärmdumpar
 
-Detta projekt är licensierat under MIT-licensen.
-
-## 📋 Projektöversikt
-
-Daily Constellation är en fullstack-applikation som hämtar och visar den senaste astronomiska bilden från NASA:s APOD API. Applikationen ger användarna möjlighet att utforska universum genom vackra bilder och informativa beskrivningar som uppdateras dagligen.
-
-### ✨ Funktioner:
-
-- Visar dagens astronomiska bild eller video från NASA
-- Responsiv design som fungerar på alla enheter
-- Eleganta laddningsanimationer
-- Visar detaljerade beskrivningar från NASA:s astronomer
-- Modern och kosmiskt inspirerad användargränssnitt
-
-## 🛠️ Teknikstack
-
-### Frontend
-- React 18
-- TypeScript
-- Vite
-- Tailwind CSS
-- Axios för API-anrop
-
-### Backend
-- Node.js
-- Express
-- TypeScript
-- Axios för proxying av NASA API-anrop
-
-## 📋 Skärmdumpar
-
-![Hem-vy](./screenshots/home-view.svg)
+![Hem-vy](screenshots/png/home-view.png)
 *Huvudvyn visar dagens astronomiska bild/video från NASA*
 
-![Laddningsanimation](./screenshots/loading-view.svg)
-*Snygg laddningsanimation medan data hämtas*
+![Galleri-vy](screenshots/png/gallery-view.png)
+*Galleri-vyn där du kan utforska historiska bilder*
+
+![Favorit-vy](screenshots/png/favorites-view.png)
+*Favorit-vyn där du kan se dina sparade bilder*
+
+## 📝 Lägga till egna skärmdumpar
+
+För att lägga till skärmdumpar som visas korrekt på GitHub:
+
+1. Ta en skärmdump av din applikation
+2. Spara bilden i PNG-format i mappen `screenshots/png/`
+3. Lägg till bilden i README.md med följande Markdown-syntax:
+   ```markdown
+   ![Beskrivning av din bild](screenshots/png/filnamn.png)
+   ```
+4. För att lägga till bildtext, lägg till en asterisk-rad direkt under bilden:
+   ```markdown
+   *Detta är en beskrivande bildtext*
+   ```
+
+5. Commita och pusha ändringarna till GitHub:
+   ```bash
+   git add screenshots/png/filnamn.png README.md
+   git commit -m "Lägger till skärmdump av [funktionen]"
+   git push
+   ```
 
 ## 🔄 Arbetsflöde
 
@@ -154,9 +154,10 @@ Om du stöter på problem:
 
 1. Kontrollera att både frontend och backend körs
 2. Verifiera att din NASA API-nyckel är korrekt i .env-filen
-3. Se till att port 3000 är tillgänglig för backend-servern
+3. Se till att port 4001 är tillgänglig för backend-servern
 4. Kontrollera att ts-node är installerat: `npm install -D ts-node typescript`
 5. Om du ser "Failed to fetch astronomy picture", kan det bero på att backend-servern inte svarar
+6. Kontrollera att alla färger är definierade i `tailwind.config.js` om du får CSS-fel
 
 ## 📄 Licens
 

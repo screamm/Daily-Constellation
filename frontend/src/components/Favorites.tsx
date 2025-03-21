@@ -1,218 +1,200 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { AstronomyPicture } from '../types/AstronomyPicture';
-import { ClipLoader } from 'react-spinners';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
+import { sv } from 'date-fns/locale';
+import { IAstronomyPicture } from '../types';
+import ConstellationCard from './ConstellationCard';
 
 const Favorites = () => {
-  const [favorites, setFavorites] = useState<AstronomyPicture[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [favorites, setFavorites] = useState<IAstronomyPicture[]>([]);
+  const [emptyMessage, setEmptyMessage] = useState<string>('Laddar favoriter...');
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [focusedIndex, setFocusedIndex] = useState<number>(-1);
 
   useEffect(() => {
-    // Ladda favoriter från localStorage
-    setLoading(true);
-    const storedFavorites = localStorage.getItem('favorites');
-    
-    if (storedFavorites) {
-      try {
-        const parsedFavorites = JSON.parse(storedFavorites);
-        // Sortera favoriter efter datum, nyaste först
-        setFavorites(parsedFavorites.sort((a: AstronomyPicture, b: AstronomyPicture) => 
-          new Date(b.date).getTime() - new Date(a.date).getTime()
-        ));
-      } catch (error) {
-        console.error('Error parsing favorites:', error);
-      }
-    }
-    
-    setLoading(false);
+    loadFavorites();
   }, []);
 
-  const handleDateClick = (date: string) => {
-    setSelectedDate(date === selectedDate ? '' : date);
+  const loadFavorites = () => {
+    try {
+      const storedFavorites = localStorage.getItem('favorites');
+      if (storedFavorites) {
+        const parsedFavorites = JSON.parse(storedFavorites);
+        if (Array.isArray(parsedFavorites) && parsedFavorites.length > 0) {
+          // Sortera efter datum med nyaste först
+          setFavorites(parsedFavorites.sort((a, b) => {
+            return new Date(b.date).getTime() - new Date(a.date).getTime();
+          }));
+        } else {
+          setEmptyMessage('Du har inte sparat några favoriter än.');
+        }
+      } else {
+        setEmptyMessage('Du har inte sparat några favoriter än.');
+      }
+    } catch (error) {
+      console.error('Fel vid inläsning av favoriter:', error);
+      setEmptyMessage('Kunde inte läsa in favoriter. Något gick fel.');
+    }
   };
 
-  const removeFromFavorites = (picture: AstronomyPicture) => {
-    const updatedFavorites = favorites.filter(fav => fav.date !== picture.date);
-    setFavorites(updatedFavorites);
-    localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-  };
-
-  // Filtrera favoriter baserat på söktermen
-  const filteredFavorites = favorites.filter(fav => 
-    fav.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    fav.explanation.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const removeFavorite = useCallback((date: string) => {
+    try {
+      const storedFavorites = localStorage.getItem('favorites');
+      if (storedFavorites) {
+        const parsedFavorites = JSON.parse(storedFavorites);
+        const updatedFavorites = parsedFavorites.filter(
+          (fav: IAstronomyPicture) => fav.date !== date
+        );
+        localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+        setFavorites(updatedFavorites);
+        
+        if (updatedFavorites.length === 0) {
+          setEmptyMessage('Du har inte sparat några favoriter än.');
+        }
+      }
+    } catch (error) {
+      console.error('Fel vid borttagning av favorit:', error);
+    }
+  }, []);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return format(date, 'yyyy-MM-dd');
+    try {
+      const date = parseISO(dateString);
+      return format(date, 'd MMMM yyyy', { locale: sv });
+    } catch (error) {
+      return dateString;
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-cosmic-background">
-        <div className="text-center">
-          <ClipLoader color="#1E90FF" size={50} />
-          <p className="mt-4 text-cosmic-text">Laddar favoriter...</p>
-        </div>
-      </div>
-    );
-  }
+  // Hantera tangentbordsnavigation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, index: number) => {
+    const numCols = window.innerWidth >= 1280 ? 4 : window.innerWidth >= 1024 ? 3 : window.innerWidth >= 640 ? 2 : 1;
+    
+    switch (e.key) {
+      case 'ArrowRight':
+        e.preventDefault();
+        if (index < favorites.length - 1) {
+          setFocusedIndex(index + 1);
+        }
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        if (index > 0) {
+          setFocusedIndex(index - 1);
+        }
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        if (index + numCols < favorites.length) {
+          setFocusedIndex(index + numCols);
+        }
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        if (index - numCols >= 0) {
+          setFocusedIndex(index - numCols);
+        }
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        // Simulera klick på kortet
+        if (gridRef.current) {
+          const card = gridRef.current.children[index] as HTMLElement;
+          const link = card.querySelector('a');
+          if (link) {
+            link.click();
+          }
+        }
+        break;
+      case 'Delete':
+        e.preventDefault();
+        if (index >= 0 && index < favorites.length) {
+          removeFavorite(favorites[index].date);
+          // Efter borttagning, fokusera på föregående objekt eller första om det var det första
+          if (index > 0) {
+            setFocusedIndex(index - 1);
+          } else if (favorites.length > 1) {
+            setFocusedIndex(0);
+          }
+        }
+        break;
+      default:
+        break;
+    }
+  }, [favorites.length, removeFavorite]);
+
+  // Fokusera på den valda bilden när focusedIndex ändras
+  useEffect(() => {
+    if (focusedIndex >= 0 && gridRef.current && gridRef.current.children[focusedIndex]) {
+      const focusElement = gridRef.current.children[focusedIndex] as HTMLElement;
+      if (focusElement) {
+        focusElement.focus();
+      }
+    }
+  }, [focusedIndex]);
 
   return (
-    <div className="min-h-screen bg-cosmic-background">
-      <header className="sticky top-0 z-40 w-full bg-cosmic-primary shadow-lg">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="text-xl md:text-2xl font-bold text-cosmic-text">
-            Mina favoriter
-          </h1>
-        </div>
-      </header>
+    <div className="container mx-auto px-4 py-6">
+      <h1 className="text-2xl md:text-3xl font-bold text-cosmic-text mb-6">
+        Dina favoriter
+      </h1>
 
-      <main className="container mx-auto px-4 py-6">
-        {/* Sökfält */}
-        <div className="mb-8 p-4 bg-cosmic-primary rounded-lg">
-          <div className="relative">
-            <input 
-              type="text"
-              placeholder="Sök bland dina favoriter..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-3 pl-10 bg-cosmic-background text-cosmic-text border border-cosmic-accent rounded"
-            />
-            <svg 
-              className="absolute left-3 top-3.5 h-5 w-5 text-cosmic-text opacity-70" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
-              />
-            </svg>
-          </div>
+      {favorites.length === 0 ? (
+        <div 
+          className="text-center py-12 bg-cosmic-primary rounded-lg border border-cosmic-border shadow-md"
+          role="status"
+          aria-live="polite"
+        >
+          <p className="text-cosmic-text text-lg mb-4">{emptyMessage}</p>
+          <Link 
+            to="/gallery" 
+            className="btn btn-primary rounded-md py-2 px-4 hover:bg-cosmic-accent-soft transition-colors"
+            aria-label="Gå till bildgalleriet för att utforska bilder"
+          >
+            Utforska bildgalleriet
+          </Link>
         </div>
-
-        {favorites.length === 0 ? (
-          <div className="text-center py-12 bg-cosmic-primary rounded-lg">
-            <p className="text-cosmic-text text-lg mb-4">
-              Du har inga favoritmarkerade bilder ännu.
-            </p>
-            <Link 
-              to="/gallery" 
-              className="btn-primary inline-block"
+      ) : (
+        <div 
+          ref={gridRef}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 gallery-grid"
+          role="grid"
+          aria-label="Dina favoritbilder"
+        >
+          {favorites.map((picture, index) => (
+            <div 
+              key={picture.date} 
+              className="relative gallery-item"
+              role="gridcell"
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              tabIndex={focusedIndex === index ? 0 : -1}
             >
-              Utforska galleriet
-            </Link>
-          </div>
-        ) : filteredFavorites.length === 0 ? (
-          <div className="text-center py-12 bg-cosmic-primary rounded-lg">
-            <p className="text-cosmic-text text-lg">
-              Inga favoriter matchade din sökning.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredFavorites.map((picture) => (
-              <div 
-                key={picture.date} 
-                className="card transition-transform hover:scale-102"
+              <ConstellationCard astronomyPicture={picture} />
+              <button
+                onClick={() => removeFavorite(picture.date)}
+                className="absolute top-2 right-2 bg-cosmic-primary bg-opacity-70 hover:bg-cosmic-secondary p-2 rounded-full transition-all duration-300 z-10"
+                aria-label={`Ta bort ${picture.title} från favoriter`}
+                title="Ta bort från favoriter"
               >
-                <div className="relative pb-[65%]">
-                  {picture.media_type === 'image' ? (
-                    <img 
-                      src={picture.url} 
-                      alt={picture.title} 
-                      className="absolute w-full h-full object-cover cursor-pointer"
-                      onClick={() => handleDateClick(picture.date)}
-                    />
-                  ) : (
-                    <div 
-                      className="absolute w-full h-full flex items-center justify-center bg-black cursor-pointer"
-                      onClick={() => handleDateClick(picture.date)}
-                    >
-                      <iframe 
-                        src={picture.url} 
-                        title={picture.title} 
-                        className="absolute w-full h-full" 
-                        allowFullScreen
-                      />
-                    </div>
-                  )}
-                  <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-4">
-                    <h3 className="text-white font-bold truncate">{picture.title}</h3>
-                    <p className="text-gray-300 text-sm">{formatDate(picture.date)}</p>
-                  </div>
-
-                  {/* Knapp för att ta bort från favoriter */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeFromFavorites(picture);
-                    }}
-                    className="absolute top-2 right-2 bg-cosmic-background bg-opacity-70 hover:bg-cosmic-primary rounded-full p-2 transition-colors"
-                    aria-label="Ta bort från favoriter"
-                  >
-                    <svg 
-                      className="h-5 w-5 text-red-500 fill-current" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
-                      />
-                    </svg>
-                  </button>
-                </div>
-                
-                {selectedDate === picture.date && (
-                  <div className="p-4">
-                    <h3 className="text-cosmic-accent font-bold text-lg mb-2">{picture.title}</h3>
-                    <p className="text-cosmic-text text-sm mb-2">
-                      Datum: {formatDate(picture.date)}
-                      {picture.copyright && ` | © ${picture.copyright}`}
-                    </p>
-                    <p className="text-cosmic-text text-sm max-h-32 overflow-y-auto">
-                      {picture.explanation}
-                    </p>
-                    <div className="mt-3 flex justify-between">
-                      <Link 
-                        to={`/day/${picture.date}`} 
-                        className="text-cosmic-accent hover:underline text-sm"
-                      >
-                        Visa fullständig vy
-                      </Link>
-                      <a 
-                        href={picture.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-cosmic-accent hover:underline text-sm"
-                      >
-                        Öppna i nytt fönster
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
-
-      <footer className="mt-8 p-4 bg-cosmic-primary">
-        <div className="container mx-auto text-center text-cosmic-text text-sm">
-          <p>Drivs av NASA's APOD API</p>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </button>
+            </div>
+          ))}
         </div>
-      </footer>
+      )}
+
+      {favorites.length > 0 && (
+        <div className="mt-6 text-cosmic-text text-sm" aria-live="polite">
+          <p>
+            <span className="sr-only">Tangentbordsnavigation: </span>
+            Använd piltangenterna för att navigera bland dina favoriter. 
+            <span className="hidden md:inline"> Tryck Delete-tangenten för att ta bort en favorit.</span>
+          </p>
+        </div>
+      )}
     </div>
   );
 };

@@ -15,4 +15,9 @@ router.get('/range', constellationController.getDateRange);
 // Slumpmässig astronomisk bild
 router.get('/random', constellationController.getRandom);
 
+// Admin-funktioner för cache-hantering (skyddade endpoints)
+// Dessa skulle idealt skyddas med autentisering i en produktionsmiljö
+router.get('/admin/cache/stats', constellationController.getCacheStats);
+router.post('/admin/cache/clear', constellationController.clearApiCache);
+
 export default router; 

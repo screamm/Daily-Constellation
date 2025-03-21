@@ -36,17 +36,62 @@ const App = () => {
         root.style.setProperty('--color-cosmic-accent', '#2563eb');
         root.style.setProperty('--color-cosmic-text', '#334155');
       }
+      
+      // Lägg till stjärnanimationsvariabler
+      root.style.setProperty('--twinkle-duration', '4s');
+      root.style.setProperty('--star-opacity', savedTheme === 'light' ? '0.3' : '0.8');
+      root.style.setProperty('--glow-opacity', savedTheme === 'light' ? '0.1' : '0.3');
+      
+      // Skapa stjärnor dynamiskt om de inte redan finns
+      if (!document.querySelector('.starry-background')) {
+        createStarryBackground();
+      }
     } catch (error) {
-      console.error('Kunde inte initialisera tema:', error);
-      // Använd cosmic-tema som fallback om något går fel
-      document.documentElement.setAttribute('data-theme', 'cosmic');
+      console.error('Fel vid initialisering av tema:', error);
     }
   }, []);
+
+  // Skapa den animerade stjärnbakgrunden
+  const createStarryBackground = () => {
+    const starryBackground = document.createElement('div');
+    starryBackground.className = 'starry-background';
+    starryBackground.setAttribute('aria-hidden', 'true');
+    
+    // Skapa mellan 100-200 stjärnor
+    const starCount = Math.floor(Math.random() * 100) + 100;
+    
+    for (let i = 0; i < starCount; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      
+      // Slumpmässig position
+      star.style.left = `${Math.random() * 100}%`;
+      star.style.top = `${Math.random() * 100}%`;
+      
+      // Slumpmässig storlek
+      const size = Math.random() * 2 + 1;
+      star.style.width = `${size}px`;
+      star.style.height = `${size}px`;
+      
+      // Slumpmässig blinkfördröjning
+      star.style.animationDelay = `${Math.random() * 4}s`;
+      
+      // Slumpmässig blinktid
+      const twinkleDuration = 3 + Math.random() * 5;
+      star.style.setProperty('--twinkle-duration', `${twinkleDuration}s`);
+      
+      starryBackground.appendChild(star);
+    }
+    
+    // Lägg till stjärnbakgrunden som första barn i body-elementet
+    document.body.insertBefore(starryBackground, document.body.firstChild);
+  };
 
   return (
     <Router>
       <div className="app-container">
         <NavigationBar />
+        
         <main className="app-content">
           <Routes>
             <Route path="/" element={<ConstellationInfo />} />
@@ -56,6 +101,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
+        
         <Footer />
       </div>
     </Router>

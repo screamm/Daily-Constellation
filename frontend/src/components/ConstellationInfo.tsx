@@ -5,6 +5,7 @@ import { ClipLoader } from 'react-spinners';
 import { format, isValid, parseISO, addDays, subDays } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { AstronomyPicture } from '../types/AstronomyPicture';
+import { Link } from 'react-router-dom';
 
 // Cache-nyckel för backend-status
 const BACKEND_STATUS_KEY = 'backend_status';
@@ -323,8 +324,9 @@ const ConstellationInfo = () => {
   // Rendera laddning
   if (loading) {
     return (
-      <div className="flex-grow flex items-center justify-center">
-        <ClipLoader color="#4d76e3" size={60} />
+      <div className="loading-container">
+        <ClipLoader color={getComputedStyle(document.documentElement).getPropertyValue('--color-cosmic-accent')} size={50} />
+        <p className="mt-4 text-cosmic-text">Hämtar dagens stjärnbild...</p>
       </div>
     );
   }
@@ -332,20 +334,16 @@ const ConstellationInfo = () => {
   // Rendera felmeddelande
   if (error) {
     return (
-      <div className="flex-grow flex flex-col items-center justify-center text-cosmic-text p-6">
-        <div className="bg-cosmic-primary p-8 rounded-lg shadow-lg max-w-lg text-center">
-          <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <h2 className="text-xl font-semibold mb-2">Oj, något gick fel</h2>
-          <p className="text-cosmic-text/70 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-cosmic-accent text-white rounded hover:bg-opacity-90 transition-colors"
-          >
-            Försök igen
-          </button>
-        </div>
+      <div className="error-container">
+        <h2 className="text-xl font-bold mb-2">Något gick fel</h2>
+        <p>{error}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="btn btn-primary mt-4"
+          aria-label="Försök igen genom att ladda om sidan"
+        >
+          Försök igen
+        </button>
       </div>
     );
   }
@@ -353,260 +351,274 @@ const ConstellationInfo = () => {
   // Rendera om ingen bild hittades
   if (!astronomyPicture) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black text-white">
-        <div className="max-w-md p-6 text-center">
-          <div className="mb-6">
-            <svg className="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-            </svg>
-          </div>
-          <h2 className="text-xl mb-3">Ingen bild hittades</h2>
-          <p className="text-white/70 mb-6">
-            Det finns ingen astronomisk bild för det begärda datumet.
-          </p>
-          <button 
-            onClick={() => navigate('/')}
-            className="px-6 py-2 border border-white/20 hover:bg-white/10 rounded-md transition-colors"
-          >
-            Tillbaka till startsidan
-          </button>
-        </div>
+      <div className="error-container">
+        <h2 className="text-xl font-bold mb-2">Inget innehåll hittades</h2>
+        <p>Vi kunde inte hitta någon stjärnbild för det begärda datumet.</p>
+        <Link to="/" className="btn btn-primary mt-4 inline-block">
+          Gå till dagens bild
+        </Link>
       </div>
     );
   }
 
   // Huvudkomponent
   return (
-    <div className="constellation-container h-full flex flex-col relative overflow-hidden">
+    <div className="constellation-container">
       {loading ? (
-        <div className="flex-grow flex items-center justify-center">
-          <ClipLoader color="#4d76e3" size={60} />
+        <div className="loading-container">
+          <ClipLoader color={getComputedStyle(document.documentElement).getPropertyValue('--color-cosmic-accent')} size={50} />
+          <p className="mt-4 text-cosmic-text">Hämtar dagens stjärnbild...</p>
         </div>
       ) : error ? (
-        <div className="flex-grow flex flex-col items-center justify-center text-cosmic-text p-6">
-          <div className="bg-cosmic-primary p-8 rounded-lg shadow-lg max-w-lg text-center">
-            <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <h2 className="text-xl font-semibold mb-2">Oj, något gick fel</h2>
-            <p className="text-cosmic-text/70 mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-cosmic-accent text-white rounded hover:bg-opacity-90 transition-colors"
-            >
-              Försök igen
-            </button>
-          </div>
+        <div className="error-container">
+          <h2 className="text-xl font-bold mb-2">Något gick fel</h2>
+          <p>{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="btn btn-primary mt-4"
+            aria-label="Försök igen genom att ladda om sidan"
+          >
+            Försök igen
+          </button>
         </div>
       ) : astronomyPicture ? (
         <>
-          {/* Bakgrundsbild med overlay */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${astronomyPicture.url})` }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/70 backdrop-blur-sm"></div>
-          </div>
-          
-          {/* Demo-indikator */}
-          {astronomyPicture.demo && (
-            <div className="absolute top-0 left-0 right-0 bg-yellow-600 text-white text-center text-xs py-1 z-20">
-              Demo-läge: Visar fallback-data eftersom NASA API inte kunde nås.
-            </div>
-          )}
-          
-          {/* Huvudinnehåll */}
-          <div className="relative z-10 flex flex-col h-full py-2">
-            {/* Kontroller-rad */}
-            <div className="px-4 py-1 flex justify-between items-center text-white">
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => navigateDay('prev')}
-                  className="text-white opacity-70 hover:opacity-100 transition-opacity"
-                  aria-label="Föregående dag"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                
-                <button 
-                  onClick={handleDatePickerClick}
-                  className="text-white text-sm md:text-base opacity-90 hover:opacity-100 transition-opacity"
-                >
-                  {format(new Date(astronomyPicture.date), "d MMMM yyyy", { locale: sv })}
-                </button>
-                
-                <button
-                  onClick={() => navigateDay('next')}
-                  className={`text-white ${new Date(astronomyPicture.date) >= new Date() ? 'opacity-30 cursor-not-allowed' : 'opacity-70 hover:opacity-100 transition-opacity'}`}
-                  aria-label="Nästa dag"
-                  disabled={new Date(astronomyPicture.date) >= new Date()}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-                
-                <button 
-                  onClick={() => navigate('/')}
-                  className="text-white opacity-70 hover:opacity-100 transition-opacity ml-1"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                  </svg>
-                </button>
-              </div>
-              
-              {/* Favoritknapp och delningsknapp */}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={toggleFavorite}
-                  className={`text-white ${isFavorite ? 'opacity-100' : 'opacity-70 hover:opacity-100'} transition-opacity`}
-                  aria-label={isFavorite ? "Ta bort från favoriter" : "Lägg till i favoriter"}
-                >
-                  <svg 
-                    className={`w-5 h-5 ${isFavorite ? 'text-red-500 fill-current' : ''}`}
-                    fill={isFavorite ? 'currentColor' : 'none'}
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={1.5} 
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
-                    />
-                  </svg>
-                </button>
-                
-                <div className="relative">
-                  <button
-                    onClick={shareUrl}
-                    className="text-white opacity-70 hover:opacity-100 transition-opacity"
-                    aria-label="Dela"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={1.5} 
-                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" 
-                      />
-                    </svg>
-                  </button>
-                  
-                  {copySuccess && (
-                    <div className="absolute right-0 bottom-full mb-1 bg-white/10 backdrop-blur-md text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                      Länk kopierad
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-cosmic-text">
+              {astronomyPicture.title}
+            </h1>
             
-            {/* Innehållssektionen - titel och bild */}
-            <div className="flex-grow flex flex-col justify-center items-center px-4 py-2">
-              <h1 className="text-xl md:text-2xl font-semibold text-white text-center mb-3">
-                {astronomyPicture.title}
-              </h1>
-              
-              <div className="w-full h-full flex items-center justify-center">
-                {astronomyPicture.media_type === 'image' ? (
-                  <img
-                    src={astronomyPicture.url}
-                    alt={astronomyPicture.title}
-                    className="w-full h-full object-cover rounded-lg shadow-2xl" 
-                    style={{ maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}
-                    loading="eager"
-                  />
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={toggleInfo}
+                className="btn btn-secondary text-sm p-2 rounded-md hover:bg-cosmic-secondary"
+                aria-label={showInfo ? "Dölj information" : "Visa information"}
+                title={showInfo ? "Dölj information" : "Visa information"}
+              >
+                {showInfo ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  </svg>
                 ) : (
-                  <iframe
-                    src={astronomyPicture.url}
-                    title={astronomyPicture.title}
-                    className="w-full aspect-video rounded-lg shadow-2xl"
-                    style={{ maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                )}
+              </button>
+              
+              <button
+                onClick={toggleFavorite}
+                className={`btn btn-secondary text-sm p-2 rounded-md hover:bg-cosmic-secondary ${isFavorite ? 'text-yellow-400 border-yellow-400' : ''}`}
+                aria-label={isFavorite ? "Ta bort från favoriter" : "Lägg till i favoriter"}
+                title={isFavorite ? "Ta bort från favoriter" : "Lägg till i favoriter"}
+              >
+                {isFavorite ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                )}
+              </button>
+              
+              <button
+                onClick={shareUrl}
+                className="btn btn-secondary text-sm p-2 rounded-md hover:bg-cosmic-secondary"
+                aria-label="Dela denna sida"
+                title="Dela denna sida"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+              </button>
+              
+              <div className="relative">
+                <button
+                  onClick={handleDatePickerClick}
+                  className="btn btn-secondary text-sm p-2 rounded-md hover:bg-cosmic-secondary"
+                  aria-label="Välj datum"
+                  title="Välj datum"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                
+                {showDatePicker && (
+                  <div className="absolute right-0 mt-2 p-2 bg-cosmic-primary rounded-lg shadow-lg z-10 border border-cosmic-border">
+                    <input
+                      type="date"
+                      value={astronomyPicture.date}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          navigate(`/day/${e.target.value}`);
+                        }
+                      }}
+                      className="bg-cosmic-secondary text-cosmic-text p-2 rounded-md border border-cosmic-border focus:border-cosmic-accent-soft"
+                      aria-label="Välj datum för stjärnbild"
+                    />
+                  </div>
                 )}
               </div>
             </div>
+          </div>
+          
+          <div className="relative mb-4 overflow-hidden rounded-lg">
+            <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-cosmic-primary bg-opacity-50 z-10 loading-placeholder">
+              <ClipLoader color={getComputedStyle(document.documentElement).getPropertyValue('--color-cosmic-accent')} size={40} />
+            </div>
             
-            {/* Informationspanel i botten */}
-            <div className="relative mt-auto">
-              <div className="flex justify-center">
-                <button 
-                  onClick={toggleInfo} 
-                  className="mb-1 w-8 h-8 flex items-center justify-center text-white bg-black/40 rounded-full backdrop-blur-md"
+            <img
+              src={astronomyPicture.url}
+              alt={astronomyPicture.title}
+              className="max-w-full h-auto rounded-lg transition-all duration-300"
+              onLoad={(e) => {
+                const target = e.target as HTMLImageElement;
+                const placeholder = target.parentElement?.querySelector('.loading-placeholder');
+                if (placeholder) {
+                  placeholder.classList.add('opacity-0');
+                  setTimeout(() => {
+                    placeholder.remove();
+                  }, 300);
+                }
+              }}
+            />
+          </div>
+          
+          {copySuccess && (
+            <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out">
+              Länk kopierad till urklipp!
+            </div>
+          )}
+          
+          <div className="flex justify-between items-center mb-4">
+            <button
+              onClick={() => navigateDay('prev')}
+              className="btn btn-secondary text-sm"
+              aria-label="Föregående dag"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Föregående dag
+            </button>
+            
+            <div className="text-center text-cosmic-text">
+              <span className="font-medium">{formatDate(astronomyPicture.date)}</span>
+            </div>
+            
+            <button
+              onClick={() => navigateDay('next')}
+              className="btn btn-secondary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Nästa dag"
+              disabled={astronomyPicture.date === format(new Date(), 'yyyy-MM-dd')}
+            >
+              Nästa dag
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+          
+          {showInfo && (
+            <div className="mt-4 bg-cosmic-primary rounded-lg p-4 border border-cosmic-border shadow-md">
+              <div className="flex justify-between items-center mb-4">
+                <button
+                  onClick={() => navigateDay('prev')}
+                  className="btn btn-secondary rounded-md py-1 px-3 hover:bg-cosmic-secondary flex items-center"
+                  aria-label="Föregående dag"
                 >
-                  <svg 
-                    className={`w-4 h-4 transition-transform duration-300 ${showInfo ? 'rotate-180' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 15l7-7 7 7" />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Föregående
+                </button>
+                
+                <span className="text-sm md:text-base font-medium text-cosmic-text">
+                  {formatDate(astronomyPicture.date)}
+                </span>
+                
+                <button
+                  onClick={() => navigateDay('next')}
+                  disabled={astronomyPicture.date === format(new Date(), 'yyyy-MM-dd')}
+                  className="btn btn-secondary rounded-md py-1 px-3 hover:bg-cosmic-secondary flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Nästa dag"
+                >
+                  Nästa
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               </div>
               
-              <div className={`bg-black/80 backdrop-blur-md text-white transition-all duration-300 ${showInfo ? 'max-h-32 md:max-h-36 p-3' : 'max-h-0 p-0'} overflow-auto`}>
-                <div className="max-w-3xl mx-auto">
-                  {astronomyPicture.copyright && (
-                    <p className="text-white/60 text-xs mb-1">
-                      © {astronomyPicture.copyright}
-                    </p>
-                  )}
-                  
-                  <div className="text-white/80 text-sm md:text-base font-light">
-                    <p className="line-clamp-3">{astronomyPicture.explanation}</p>
-                  </div>
-
-                  {/* Sociala delningsknappar */}
-                  <div className="mt-2 pt-1 border-t border-white/10 flex justify-between items-center">
-                    <div className="text-white/60 text-xs">
-                      NASA APOD
-                    </div>
-                    
-                    <div className="flex gap-4">
-                      <button
-                        onClick={() => shareOnSocialMedia('twitter')}
-                        className="text-white/60 hover:text-white transition-colors"
-                        aria-label="Dela på Twitter"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-                        </svg>
-                      </button>
-                      
-                      <button
-                        onClick={() => shareOnSocialMedia('facebook')}
-                        className="text-white/60 hover:text-white transition-colors"
-                        aria-label="Dela på Facebook"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-                        </svg>
-                      </button>
-                      
-                      <button
-                        onClick={() => shareOnSocialMedia('linkedin')}
-                        className="text-white/60 hover:text-white transition-colors"
-                        aria-label="Dela på LinkedIn"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                        </svg>
-                      </button>
+              <div className="prose prose-sm md:prose-base lg:prose-lg dark:prose-invert max-w-none">
+                <div className="text-cosmic-text" dangerouslySetInnerHTML={{ __html: astronomyPicture.explanation }} />
+              </div>
+              
+              {location.pathname.includes('/offline/') && (
+                <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 rounded-md border border-yellow-400 text-sm">
+                  <div className="flex items-start">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      Du visar offlineinnehåll. Vissa funktioner kanske inte fungerar som förväntat. 
+                      <a href="/" className="underline ml-1 text-cosmic-accent-soft hover:text-cosmic-accent">Gå till onlineläge</a>
                     </div>
                   </div>
                 </div>
+              )}
+              
+              <div className="mt-4 flex flex-wrap gap-2">
+                <a 
+                  href={`https://twitter.com/intent/tweet?text=Dagens astronomibild: ${astronomyPicture.title}&url=${window.location.href}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary text-sm py-1 px-3 rounded-md hover:bg-cosmic-secondary flex items-center"
+                >
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                  </svg>
+                  Twitter
+                </a>
+                
+                <a 
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary text-sm py-1 px-3 rounded-md hover:bg-cosmic-secondary flex items-center"
+                >
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
+                  </svg>
+                  Facebook
+                </a>
+                
+                <a 
+                  href={`mailto:?subject=Dagens astronomibild: ${astronomyPicture.title}&body=Kolla in dagens astronomibild: ${window.location.href}`} 
+                  className="btn btn-secondary text-sm py-1 px-3 rounded-md hover:bg-cosmic-secondary flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  E-post
+                </a>
               </div>
             </div>
-          </div>
+          )}
         </>
-      ) : null}
+      ) : (
+        <div className="error-container">
+          <h2 className="text-xl font-bold mb-2">Inget innehåll hittades</h2>
+          <p>Vi kunde inte hitta någon stjärnbild för det begärda datumet.</p>
+          <Link to="/" className="btn btn-primary mt-4 inline-block">
+            Gå till dagens bild
+          </Link>
+        </div>
+      )}
     </div>
   );
 };
